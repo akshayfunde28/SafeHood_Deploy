@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeHood - Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f6fafd;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #b0f2c2 0%, #64c9e2 100%);
+            padding: 20px 60px;
+            box-shadow: 0 2px 14px rgba(87,199,172,0.12);
+        }
+        .navbar .brand {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #187ca9;
+            text-shadow: 0 1px 0 #fcfefe;
+        }
+        .navbar .nav-links {
+            display: flex;
+            gap: 17px;
+        }
+        .navbar .nav-links a {
+            text-decoration: none;
+            color: #187ca9;
+            background: #e3fbf3;
+            padding: 9px 20px;
+            border-radius: 21px;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 2px 6px rgba(87,199,172,0.08);
+            border: 1px solid #cce7ec;
+        }
+        .navbar .nav-links a:hover {
+            background: #64c9e2;
+            color: #fff;
+        }
+        .page-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: #fffffffa;
+            border-radius: 22px;
+            box-shadow: 0 8px 40px 0 rgba(100,201,226,0.13), 0 4px 32px 0 rgba(176,242,194,0.09);
+            padding: 48px 34px;
+            min-width: 320px;
+            max-width: 370px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            align-items: stretch;
+        }
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #187ca9;
+            letter-spacing: 1.5px;
+        }
+        label {
+            font-weight: 500;
+            color: #1e556b;
+            margin-bottom: 6px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 11px 13px;
+            background: #eaf9ff;
+            border: 1.2px solid #cce7ec;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            color: #184262;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            outline: none;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #64c9e2;
+            box-shadow: 0 0 7px #b0f2c2a2;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #64c9e2 0%, #187ca9 100%);
+            color: #fff;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(100,201,226,0.18);
+            transition: background 0.24s;
+        }
+        button[type="submit"]:hover {
+            background: linear-gradient(100deg, #187ca9 0%, #b0f2c2 100%);
+            color: #274957;
+        }
+        @media (max-width: 600px) {
+            .navbar { padding: 13px 10px; }
+            .login-card { padding: 28px 9px; min-width: unset; max-width: 98vw; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">SafeHood</div>
+        <div class="nav-links">
+            <a th:href="@{/register}">Register a Society</a>
+            <a th:href="@{/loginPage}">SignUp</a>
+        </div>
+    </nav>
+    <div class="page-center">
+        <form class="login-card" th:action="@{/signIN}" method="post">
+            <h2>Login to SafeHood</h2>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>
+
+
+
+
+<!--  
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Society Registration</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333333;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #2575fc;
+            box-shadow: 0 0 5px rgba(37, 117, 252, 0.3);
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #1a5edb;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <form th:action="@{/signIN}" method="post" >
+        <h2>Society Registration Form</h2>
+        
+        <label for="society_Name">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+
+
+
+-->
