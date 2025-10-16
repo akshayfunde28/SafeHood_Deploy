@@ -168,11 +168,30 @@ public class Manager_Controller {
 
     // Retrieve Guest Data
     @GetMapping("/{username}/getGuest")
-    public List<Guest> getNotice(@PathVariable String username) {
-        Society society = societyRepo.getSocietyBySocietyName(username);
-        List<Guest> guest = society.getGuest();
-        return guest;
+    public ResponseEntity<?> getGuest(@PathVariable String username) {
+        try {
+            Society society = societyRepo.getSocietyBySocietyName(username);
+            
+            if (society == null) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body("Society with username '" + username + "' not found");
+            }
+            
+            List<Guest> guest = society.getGuest();
+            return ResponseEntity.ok(guest);    
+            
+        } catch (Exception e) { 
+            // Log the exception for debugging
+            e.printStackTrace();
+            
+            // Return internal server error with message
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching guests");
+        }
     }
+ 
 
     // Retrieve SOS number Data
     @GetMapping("/{username}/getSos")
