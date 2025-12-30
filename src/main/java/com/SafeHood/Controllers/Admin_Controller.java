@@ -5,3 +5,4 @@ public class Admin_Controller {
 	// then acces to update or delete society 
 	
 }
+   

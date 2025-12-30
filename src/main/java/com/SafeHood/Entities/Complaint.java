@@ -16,6 +16,7 @@ public class Complaint {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int complaint_Id ;
+	private int resident_Id ;
 	private String complaint_Title ;
 	private String complaint_Description ;
 	private String complaint_Status ;// pending /resolve 
@@ -30,15 +31,25 @@ public class Complaint {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Complaint(int complaint_Id, String complaint_Title, String complaint_Description, String complaint_Status,
-			String complaint_Date, Society society) {
+	 
+
+	public Complaint(int complaint_Id, int resident_Id, String complaint_Title, String complaint_Description,
+			String complaint_Status, String complaint_Date, Society society) {
 		super();
 		this.complaint_Id = complaint_Id;
+		this.resident_Id = resident_Id;
 		this.complaint_Title = complaint_Title;
 		this.complaint_Description = complaint_Description;
 		this.complaint_Status = complaint_Status;
 		this.complaint_Date = complaint_Date;
 		this.society = society;
+	}
+
+	public int getResident_Id() {
+		return resident_Id;
+	}
+	public void setResident_Id(int resident_Id) {
+		this.resident_Id = resident_Id;
 	}
 
 	public int getComplaint_Id() {

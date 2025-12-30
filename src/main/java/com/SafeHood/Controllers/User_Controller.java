@@ -1,14 +1,5 @@
 
-
-
-
-
-
-
-
-
 package com.SafeHood.Controllers;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,17 +8,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import com.SafeHood.Entities.Complaint;
+import com.SafeHood.Entities.EventHallBooking;
 import com.SafeHood.Entities.Events;
 import com.SafeHood.Entities.Guard;
 import com.SafeHood.Entities.Notice;
-import com.SafeHood.Entities.Society;
-import com.SafeHood.Entities.User;
+import com.SafeHood.Entities.Parking; 
+import com.SafeHood.Entities.Society; 
+import com.SafeHood.Entities.User; 
 import com.SafeHood.Repository.SocietyRepo;
+import com.SafeHood.Repository.SosRepo;
+import com.SafeHood.Repository.UserRepo;
 import com.SafeHood.Services.SafeHoodServices;
 
 @RestController
@@ -38,20 +35,35 @@ public class User_Controller {
     SafeHoodServices safeHoodServices;
     @Autowired
     SocietyRepo societyRepo;
-
- // Society Login 
+	 
+	@Autowired
+	private UserRepo userRepo;
+ // Society Login  
     @GetMapping("/{username}/{password}/societyProfile")
     public ResponseEntity<?> getSociety(@PathVariable String username,
                                         @PathVariable String password) {
         Society society = societyRepo.getSocietyBySocietyName(username);
-        if (society == null) {
+        if (society == null) { 
             return ResponseEntity.status(404).body("Society not found");
         }
         if (!society.getPassword().equals(password)) {
             return ResponseEntity.status(401).body("Invalid password");
         }
         return ResponseEntity.ok(society);
+    } 
+    
+    // check society is exist or not 
+    @GetMapping("/{username}/societyProfileExistance")
+    public ResponseEntity<?> getSocietyExistance(@PathVariable String username) {
+        Society society = societyRepo.getSocietyBySocietyName(username);
+        
+        if (society == null) { 
+            return ResponseEntity.status(404).body("Society not found");
+        }
+        
+        return ResponseEntity.ok(society);
     }
+
 
     //To save Complaints
     @PostMapping("/{username}/addcomplaints")
@@ -71,6 +83,71 @@ public class User_Controller {
             return ResponseEntity.status(500) .body("Error adding complaint: " + e.getMessage());
         }
     }
+    
+ // To save Event Hall Booking
+    @PostMapping("/{username}/bookhall")
+    public ResponseEntity<?> addHallBooking(
+            @PathVariable String username,
+            @RequestBody EventHallBooking bookingHall) {
+        try {
+            Society society = societyRepo.getSocietyBySocietyName(username);
+            if (society == null) {
+                return ResponseEntity.status(404).body("Society not found");
+            }
+            safeHoodServices.saveHallBooking(society, bookingHall);
+            return ResponseEntity.status(201).body(bookingHall);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error while booking hall: " + e.getMessage());
+        }
+    }
+    
+ // ✅ Retrieve Event Hall Bookings Data
+    @GetMapping("/{username}/getHallBookings")
+    public ResponseEntity<?> getHallBookings(@PathVariable String username) {
+        try {
+            Society society = societyRepo.getSocietyBySocietyName(username);
+
+            if (society == null) {
+                return ResponseEntity.status(404).body("❌ Society not found for username: " + username);
+            }
+
+            List<EventHallBooking> bookings = society.getEventHallBookings();
+
+            if (bookings == null || bookings.isEmpty()) {
+                return ResponseEntity.status(404).body("ℹ️ No event hall bookings found for this society.");
+            }
+
+            return ResponseEntity.ok(bookings);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("🚨 Error fetching event hall bookings: " + e.getMessage());
+        }
+    }
+
+
+
+    // to update the event hall info 
+    @PutMapping("/{username}/updateHallBooking/{hallID}")
+    public ResponseEntity<?> updateHallBooking(@PathVariable String username,
+                                               @PathVariable int hallID,
+                                               @RequestBody EventHallBooking updatedBooking) {
+        try {
+            Society society = societyRepo.getSocietyBySocietyName(username);
+            if (society == null) {
+                return ResponseEntity.status(404).body("❌ Society not found for username: " + username);
+            }
+            boolean updated = safeHoodServices.updateHallBooking(society, hallID, updatedBooking);
+            if (!updated) {
+                return ResponseEntity.status(404).body("❌ Hall booking not found with ID: " + hallID);
+            }
+            return ResponseEntity.ok("✅ Hall booking updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("🚨 Error updating hall booking: " + e.getMessage());
+        }
+    }
+
 
 
     // Retrieve Complaints Data
@@ -108,7 +185,6 @@ Society society = societyRepo.getSocietyBySocietyName(username);
     }
 
 
-    //getEvent Data
  // Get Events of a Society
     @GetMapping("/{username}/getEvents")
     public ResponseEntity<?> getEvents(@PathVariable String username) {
@@ -131,6 +207,8 @@ Society society = societyRepo.getSocietyBySocietyName(username);
             return ResponseEntity.status(500).body("🚨 Error fetching events: " + e.getMessage());
         }
     }
+    
+    
 
 
     // Retrieve Guard Data
@@ -176,7 +254,7 @@ Society society = societyRepo.getSocietyBySocietyName(username);
                 return ResponseEntity.status(404).body("Society not found");
             }
 
-            List<User> users = society.getUser(); 
+            List<User> users = society.getUser();  
 
             if (users == null || users.isEmpty()) {
                 return ResponseEntity.status(404).body("No users found for this society");
@@ -186,9 +264,66 @@ Society society = societyRepo.getSocietyBySocietyName(username);
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching users: " + e.getMessage());
+        }  
+    }
+    
+    @GetMapping("/{societyUsername}/user/{userId}")
+    public ResponseEntity<?> getUserById(
+            @PathVariable String societyUsername,
+            @PathVariable int userId) {
+        try {
+            // 1️⃣ Find the society by username
+            Society society = societyRepo.getSocietyBySocietyName(societyUsername);
+            if (society == null) {
+                return ResponseEntity.status(404).body("Society not found");
+            }
+
+            // 2️⃣ Find the user by ID
+            User user = userRepo.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+            // 3️⃣ Check if this user belongs to the same society
+            if (user.getSociety() == null || 
+                user.getSociety().getSociety_Id() != society.getSociety_Id()) {
+                return ResponseEntity.status(403).body("User does not belong to this society");
+            }
+
+            // 4️⃣ Return user details
+            return ResponseEntity.ok(user);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching user: " + e.getMessage());
         }
     }
 
+
+ // Get Parking Slots
+    @GetMapping("/{username}/getParking")
+    public ResponseEntity<?> getParking(@PathVariable String username) {
+        try {
+            Society society = societyRepo.getSocietyBySocietyName(username);
+
+            if (society == null) {
+                return ResponseEntity.status(404).body("❌ Society not found for username: " + username);
+            }
+
+            List<Parking> parkingSlots = society.getParkingSlots();
+
+            if (parkingSlots == null || parkingSlots.isEmpty()) {
+                return ResponseEntity.status(204).body("ℹ️ No parking slots available for this society");
+            }
+
+            return ResponseEntity.ok(parkingSlots);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("🚨 Error retrieving parking slots: " + e.getMessage());
+        }
+    }
+
+    
+    
 }
 
 

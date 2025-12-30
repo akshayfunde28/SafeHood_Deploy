@@ -7,7 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToOne; 
 import jakarta.persistence.Table;
 
 @Entity
@@ -17,10 +17,10 @@ public class Guest {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int guest_Id ;
 	private String guest_Name ;
-	private String guest_Phone ;
+	private String guest_Phone ; 
 	private String guest_Purpose ;
 	private String guest_EntryTime ;
-	private String guest_Address ;
+	private String guest_Address ; 
 	private String guest_ResidentName;
 	@ManyToOne
 	@JoinColumn(name="Society_Guest")

@@ -53,19 +53,30 @@ public class Society {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
 	@JsonManagedReference
 	private List<Guest> guest= new ArrayList<>();						// Guest  mapping 
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society") // resident parking 
+	@JsonManagedReference
+	private List<Parking> parkingSlots = new ArrayList<>();
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society") // resident parking 
+	@JsonManagedReference
+	private List<GuestParking> guestParking = new ArrayList<>();
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")     // Event hall booking 
+	@JsonManagedReference
+	private List<EventHallBooking> eventHallBookings = new ArrayList<>();
 
-	public Society() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
 
-	public Society(int society_Id, String username, String society_Address, String adminPassword, String pinCode,
+ 
+ 
+	public Society(int society_Id, String username, String societyAddress, String adminPassword, String pinCode,
 			String password, List<User> user, List<Notice> notice, List<Complaint> complaint, List<Events> event,
-			List<SOS_Alert> sos, List<Guard> guard, List<Guest> guest) {
+			List<SOS_Alert> sos, List<Guard> guard, List<Guest> guest, List<Parking> parkingSlots,
+			List<GuestParking> guestParking, List<EventHallBooking> eventHallBookings) {
 		super();
 		this.society_Id = society_Id;
 		this.username = username;
-		this.societyAddress = society_Address;
+		this.societyAddress = societyAddress;
 		this.adminPassword = adminPassword;
 		this.pinCode = pinCode;
 		this.password = password;
@@ -76,6 +87,23 @@ public class Society {
 		this.sos = sos;
 		this.guard = guard;
 		this.guest = guest;
+		this.parkingSlots = parkingSlots;
+		this.guestParking = guestParking;
+		this.eventHallBookings = eventHallBookings;
+	}
+
+	public Society() {
+		super();
+	 
+	}
+	
+
+	public List<GuestParking> getGuestParking() {
+		return guestParking;
+	}
+
+	public void setGuestParking(List<GuestParking> guestParking) {
+		this.guestParking = guestParking;
 	}
 
 	public int getSociety_Id() {
@@ -86,7 +114,14 @@ public class Society {
 		this.society_Id = society_Id;
 	}
 
-	
+	public List<EventHallBooking> getEventHallBookings() {
+		return eventHallBookings;
+	}
+
+	public void setEventHallBookings(List<EventHallBooking> eventHallBookings) {
+		this.eventHallBookings = eventHallBookings;
+	}
+
 
 	public String getUsername() {
 		return username;
@@ -182,6 +217,14 @@ public class Society {
 
 	public void setGuest(List<Guest> guest) {
 		this.guest = guest;
+	}
+
+	public List<Parking> getParkingSlots() {
+		return parkingSlots;
+	}
+
+	public void setParkingSlots(List<Parking> parkingSlots) {
+		this.parkingSlots = parkingSlots;
 	}
 
 	
