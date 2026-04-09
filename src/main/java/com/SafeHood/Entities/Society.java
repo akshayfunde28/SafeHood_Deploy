@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -26,45 +27,48 @@ public class Society {
 	private	String pinCode ;
 	private String password;
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<User> user = new ArrayList<>();                         					 	   // User mapping 
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<Notice> notice = new ArrayList<>();                         			   // Notice mapping 
 	 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<Complaint> complaint = new ArrayList<>();			    	// Complaint mapping 
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<Events> event = new ArrayList<>();								// Event  mapping 
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<SOS_Alert> sos = new ArrayList<>();		                    // Sos_Alert  mapping 
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<Guard> guard = new ArrayList<>();						// Guard  mapping 
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 	private List<Guest> guest= new ArrayList<>();						// Guest  mapping 
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society") // resident parking 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true) // resident parking 
 	@JsonManagedReference
 	private List<Parking> parkingSlots = new ArrayList<>();
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society") // resident parking 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true) // resident parking 
 	@JsonManagedReference
 	private List<GuestParking> guestParking = new ArrayList<>();
 	
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society")     // Event hall booking 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)     // Event hall booking 
 	@JsonManagedReference
 	private List<EventHallBooking> eventHallBookings = new ArrayList<>();
+	
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
+		private  PaymentDetails paymentDetails;
 
 
  

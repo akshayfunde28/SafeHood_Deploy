@@ -7,8 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.SafeHood.Entities.Society;
-import java.util.List;
+import com.SafeHood.Entities.SocietyDTO;
 
+import java.util.List;
  
 
 public interface SocietyRepo  extends JpaRepository<Society, Integer> {
@@ -17,6 +18,9 @@ public interface SocietyRepo  extends JpaRepository<Society, Integer> {
 	public Society getSocietyBySocietyName(@Param("UserName") String username);
 	
 	Optional<Society> findByUsername(String username);
+	
+	@Query("SELECT new com.SafeHood.Entities.SocietyDTO(s.username, s.societyAddress, s.adminPassword, s.pinCode, s.password) FROM Society s")
+	List<SocietyDTO> getAllSocietyDTO();
 	
 	
 }

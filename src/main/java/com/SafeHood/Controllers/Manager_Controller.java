@@ -15,18 +15,25 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.SafeHood.Entities.Events;
 import com.SafeHood.Entities.Guard;
 import com.SafeHood.Entities.Guest;
 import com.SafeHood.Entities.Notice;
 import com.SafeHood.Entities.Parking;
+import com.SafeHood.Entities.PaymentDetails;
+import com.SafeHood.Entities.PaymentDetailsDTO;
+import com.SafeHood.Entities.PaymentRecord;
 import com.SafeHood.Entities.SOS_Alert;
 import com.SafeHood.Entities.Society;
 import com.SafeHood.Entities.User;
+import com.SafeHood.Entities.UserPaymentDTO;
 import com.SafeHood.Repository.EventRepo;
 import com.SafeHood.Repository.GuardRepo;
 import com.SafeHood.Repository.NoticeRepo;
+import com.SafeHood.Repository.PaymentDetailsRepo;
+import com.SafeHood.Repository.PaymentRecordRepo;
 import com.SafeHood.Repository.SocietyRepo;
 import com.SafeHood.Repository.UserRepo;
 import com.SafeHood.Services.SafeHoodServices;
@@ -47,6 +54,11 @@ public class Manager_Controller {
 	private NoticeRepo noticeRepo;
 	@Autowired
 	private GuardRepo guardRepo;
+    @Autowired
+    private PaymentDetailsRepo paymentDetailsRepo;
+
+    @Autowired
+    private PaymentRecordRepo paymentRecordRepo;
     
     // add Society or Register society
     @PostMapping("/register/Society")
@@ -413,6 +425,171 @@ public class Manager_Controller {
                     .body("An error occurred while fetching SOS alerts: " + e.getMessage());
         }
     }
+    
+    
+    //  Add Payment Details using Society Username
+    @PostMapping("/payment-details/{username}")
+    public String addPaymentDetails(@PathVariable String username,
+                                    @RequestBody PaymentDetails paymentDetails) {
+
+        // 🔍 Find society by username
+        Society society = societyRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Society not found"));
+
+        // 🔗 Link payment details with society
+        paymentDetails.setSociety(society);
+
+        // 💾 Save in DB
+        paymentDetailsRepo.save(paymentDetails);
+
+        return "Payment details added successfully";
+    }
+    // get payment details 
+    @GetMapping("/payment-details/{username}")
+    public ResponseEntity<?> getPaymentDetails(@PathVariable String username) {
+        PaymentDetailsDTO dto = paymentDetailsRepo.getPaymentDetailsDTO(username);
+        
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body("No payment details found");
+        }
+        
+        return ResponseEntity.ok(dto);
+    }
+    
+    // update payment details 
+    @PutMapping("/payment-details/{username}")
+    public String updatePaymentDetails(@PathVariable String username,
+                                       @RequestBody PaymentDetails updatedDetails) {
+
+        // 🔍 Find existing payment details directly
+        PaymentDetails existing = paymentDetailsRepo
+                .findBySociety_Username(username)
+                .orElseThrow(() -> new RuntimeException("Payment details not found"));
+
+        // 🔄 Update fields
+        existing.setUpiId(updatedDetails.getUpiId());
+        existing.setMobileNumber(updatedDetails.getMobileNumber());
+        existing.setAccountNumber(updatedDetails.getAccountNumber());
+        existing.setIfscCode(updatedDetails.getIfscCode());
+        existing.setAccountHolderName(updatedDetails.getAccountHolderName());
+
+        paymentDetailsRepo.save(existing);
+
+        return "Payment details updated successfully";
+    }
+    
+    // generate payment for all users 
+    @PostMapping("/generate-payments/{username}/{maintenanceAmount}")
+    public String generateMonthlyPayments(@PathVariable String username,
+                                          @PathVariable double maintenanceAmount) {
+
+        // 🔍 Find society
+        Society society = societyRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Society not found"));
+
+        // 🔍 Get all users of that society
+        List<User> users = society.getUser();
+
+        String month = java.time.LocalDate.now().getMonth().toString() + "-" +
+                       java.time.LocalDate.now().getYear();
+
+        for (User user : users) {
+
+            PaymentRecord record = new PaymentRecord();
+
+            record.setUser(user);
+            record.setSociety(society);
+
+            record.setMaintenanceAmount(maintenanceAmount);
+            record.setFineAmount(0);
+            record.setFineReason(null);
+
+            record.setTotalAmount(maintenanceAmount);
+
+            record.setStatus("PENDING");
+
+            record.setDateTime(java.time.LocalDateTime.now());
+
+            paymentRecordRepo.save(record);
+        }
+
+        return "Monthly payment records created for all users";
+    }
+    
+    // update payment data 
+    
+    @PutMapping("/update-payment/{paymentId}")
+    public String updatePayment(@PathVariable int paymentId,
+                                @RequestBody PaymentRecord updatedRecord) {
+
+        PaymentRecord record = paymentRecordRepo.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        // 🔄 Update all required fields
+        record.setMaintenanceAmount(updatedRecord.getMaintenanceAmount());
+        record.setFineAmount(updatedRecord.getFineAmount());
+        record.setFineReason(updatedRecord.getFineReason());
+        record.setStatus(updatedRecord.getStatus());
+
+        // 🧠 Recalculate total
+        double total = record.getMaintenanceAmount() + record.getFineAmount();
+        record.setTotalAmount(total);
+
+        paymentRecordRepo.save(record);
+
+        return "Payment record updated successfully";
+    }
+    
+    @GetMapping("/current-month-payments/{username}")
+    public List<UserPaymentDTO> getCurrentMonthPayments(@PathVariable String username) {
+
+        // 🧠 Get start of month
+        java.time.LocalDateTime start = java.time.LocalDate.now()
+                .withDayOfMonth(1)
+                .atStartOfDay();
+        // 🧠 Get end of month
+        java.time.LocalDateTime end = java.time.LocalDate.now()
+                .withDayOfMonth(java.time.LocalDate.now().lengthOfMonth())
+                .atTime(23, 59, 59);
+
+        return paymentRecordRepo.getCurrentMonthData(username, start, end);
+    }
+    
+    
+    @GetMapping("/payments-by-date/{username}")
+    public List<UserPaymentDTO> getPaymentsByDate(
+            @PathVariable String username,
+            @RequestParam String date) {
+
+        // 🧠 Convert string → LocalDate
+        java.time.LocalDate inputDate = java.time.LocalDate.parse(date);
+
+        // 📅 Start of month
+        java.time.LocalDateTime start = inputDate
+                .withDayOfMonth(1)
+                .atStartOfDay();
+
+        // 📅 End of month
+        java.time.LocalDateTime end = inputDate
+                .withDayOfMonth(inputDate.lengthOfMonth())
+                .atTime(23, 59, 59);
+
+        return paymentRecordRepo.getPaymentByMonth(username, start, end);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 }
 

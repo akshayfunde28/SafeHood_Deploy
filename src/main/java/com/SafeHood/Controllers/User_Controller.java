@@ -3,6 +3,8 @@ package com.SafeHood.Controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -12,16 +14,19 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.server.ResponseStatusException;
 
 import com.SafeHood.Entities.Complaint;
 import com.SafeHood.Entities.EventHallBooking;
 import com.SafeHood.Entities.Events;
 import com.SafeHood.Entities.Guard;
 import com.SafeHood.Entities.Notice;
-import com.SafeHood.Entities.Parking; 
+import com.SafeHood.Entities.Parking;
+import com.SafeHood.Entities.PaymentRecord;
+import com.SafeHood.Entities.PaymentRecordDTO;
 import com.SafeHood.Entities.Society; 
-import com.SafeHood.Entities.User; 
+import com.SafeHood.Entities.User;
+import com.SafeHood.Repository.PaymentRecordRepo;
 import com.SafeHood.Repository.SocietyRepo;
 import com.SafeHood.Repository.SosRepo;
 import com.SafeHood.Repository.UserRepo;
@@ -35,6 +40,8 @@ public class User_Controller {
     SafeHoodServices safeHoodServices;
     @Autowired
     SocietyRepo societyRepo;
+    @Autowired
+    PaymentRecordRepo paymentRecordRepo ;
 	 
 	@Autowired
 	private UserRepo userRepo;
@@ -323,101 +330,46 @@ Society society = societyRepo.getSocietyBySocietyName(username);
     }
 
     
+
+    @GetMapping("/payment-record/{username}/{userId}")
+    public ResponseEntity<?> getPaymentRecords(
+            @PathVariable String username,
+            @PathVariable int userId) {
+
+        // 🔍 Validate society
+        Society society = societyRepo.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Society not found"));
+
+        // 🔍 Validate user
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"));
+
+        // 🔒 Validate relation
+        if (user.getSociety().getSociety_Id() != society.getSociety_Id()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "User does not belong to this society");
+        }
+
+        // 🔥 Fetch only top 12 records
+        List<PaymentRecordDTO> records = paymentRecordRepo.getTopPayments(
+                username,
+                userId,
+                PageRequest.of(0, 12)   // LIMIT 12
+        );
+
+        if (records.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No payment records found");
+        }
+
+        return ResponseEntity.ok(records);
+    }
+    
+    
+    
     
 }
 
 
-
-
-
-
-
-
-//package com.SafeHood.Controllers;
-//
-//import java.util.List;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.PathVariable;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestMapping;
-//import org.springframework.web.bind.annotation.RestController;
-//
-//import com.SafeHood.Entities.Complaint;
-//import com.SafeHood.Entities.Events;
-//import com.SafeHood.Entities.Guard;
-//import com.SafeHood.Entities.Notice;
-//import com.SafeHood.Entities.Society;
-//import com.SafeHood.Entities.User;
-//import com.SafeHood.Repository.SocietyRepo;
-//import com.SafeHood.Services.SafeHoodServices;
-//
-//@RestController
-//@RequestMapping("/{username}")
-//public class User_Controller {
-//    
-//    @Autowired
-//    SafeHoodServices safeHoodServices;
-//    @Autowired
-//    SocietyRepo societyRepo;
-//
-//    // Society Profile
-//    @GetMapping("/societyProfile")
-//    public Society getSociety(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        return society;
-//    }
-//
-//    //To save Complaints
-//    @PostMapping("/addcomplaints")
-//    public void addComplaints(@PathVariable String username, @RequestBody Complaint complaints) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        safeHoodServices.saveComplaints(society, complaints);
-//    }
-//
-//    // Retrieve Complaints Data
-//    @GetMapping("/getComplaints")
-//    public List<Complaint> getComplaints(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        List<Complaint> complaint = society.getComplaint();
-//        return complaint;
-//    }
-//    
-//    //Update Complaints !!!
-//    //( in update only update status pending or resolve )--------------->>>>>>>>>>>>>>>0xox0<<<<<<<<<<<<----------------
-//    // for update call save method that is addComplaints
-//
-//    //getEvent Data
-//    @GetMapping("/getEvents")
-//    public List<Events> getEvents(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        List<Events> events = society.getEvent();
-//        return events;
-//    }
-//
-//    // Retrieve Guard Data
-//    @GetMapping("/getGuard")
-//    public List<Guard> getGuard(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        List<Guard> guard = society.getGuard();
-//        return guard;
-//    }
-//
-//    // Retrieve Notice Data
-//    @GetMapping("/getNotice")
-//    public List<Notice> getNotice(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        List<Notice> Notice = society.getNotice();
-//        return Notice;
-//    }
-//
-//    // Retrieve User Data
-//    @GetMapping("/getUser")
-//    public List<User> getUser(@PathVariable String username) {
-//        Society society = societyRepo.getSocietyBySocietyName(username);
-//        List<User> user = society.getUser();
-//        return user;
-//    }
-//}
