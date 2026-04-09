@@ -1,14 +1,16 @@
-# Build stage (Java 21)
+# Build stage
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Run stage (Java 21)
+# Run stage
 FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# ✅ IMPORTANT: use exact jar name
+COPY --from=build /app/target/SafeHood-0.0.1-SNAPSHOT.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "/app.jar"]
