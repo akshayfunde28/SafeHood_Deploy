@@ -10,7 +10,13 @@ FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
 
-# ✅ IMPORTANT: use exact jar name
-COPY --from=build /app/target/SafeHood-0.0.1-SNAPSHOT.jar app.jar
+# Copy all build files
+COPY --from=build /app/target /app/target
 
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Dynamically pick jar
+RUN cp /app/target/*.jar /app/app.jar
+
+# Debug (IMPORTANT)
+RUN ls -l /app
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
