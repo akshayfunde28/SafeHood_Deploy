@@ -47,12 +47,12 @@ public class Admin_Controller {
         };
     }
 
-    // ✅ 2. Get society by username
-    @GetMapping("/society/{username}")
-    public Society getSocietyByUsername(@PathVariable String username) {
-        return societyRepo.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Society not found"));
-    }
+//    // ✅ 2. Get society by username
+//    @GetMapping("/society/{username}")
+//    public Society getSocietyByUsername(@PathVariable String username) {
+//        return societyRepo.findByUsername(username)
+//                .orElseThrow(() -> new RuntimeException("Society not found"));
+//    }
 
     // ✅ 3. Delete society by username
     @DeleteMapping("/society/{username}")
@@ -66,6 +66,33 @@ public class Admin_Controller {
         return "Society deleted successfully";
     }
     
+    //✅ 4 update the society 
+    @PutMapping("/society/update/{username}")
+    public ResponseEntity<String> updateSociety(@PathVariable String username,
+                                                @RequestBody Society updatedSociety) {
+        try {
+
+            Optional<Society> optionalSociety = societyRepo.findByUsername(username);
+
+            if (!optionalSociety.isPresent()) {
+                return new ResponseEntity<>("Society not found with username: " + username,
+                        HttpStatus.NOT_FOUND);
+            }
+
+            Society existingSociety = optionalSociety.get();
+            if (updatedSociety.getStatus() != null) {
+                existingSociety.setStatus(updatedSociety.getStatus());
+            }
+
+            societyRepo.save(existingSociety);
+
+            return new ResponseEntity<>("Society updated successfully ✅", HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error while updating society: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     
     // ✅ 1. CREATE ADMIN
     @PostMapping("/create")

@@ -45,13 +45,18 @@ public class User_Controller {
 	 
 	@Autowired
 	private UserRepo userRepo;
+	
+	
  // Society Login  
     @GetMapping("/{username}/{password}/societyProfile")
     public ResponseEntity<?> getSociety(@PathVariable String username,
                                         @PathVariable String password) {
         Society society = societyRepo.getSocietyBySocietyName(username);
         if (society == null) { 
-            return ResponseEntity.status(404).body("Society not found");
+            return ResponseEntity.status(404).body("Society NOT found");
+        }
+        if ("DEACTIVE".equals(society.getStatus())) {
+            return ResponseEntity.status(403).body("This society is deactivated");
         }
         if (!society.getPassword().equals(password)) {
             return ResponseEntity.status(401).body("Invalid password");
@@ -67,7 +72,9 @@ public class User_Controller {
         if (society == null) { 
             return ResponseEntity.status(404).body("Society not found");
         }
-        
+        if ("DEACTIVE".equals(society.getStatus())) {
+            return ResponseEntity.status(403).body("This society is deactivated");
+        }
         return ResponseEntity.ok(society);
     }
 

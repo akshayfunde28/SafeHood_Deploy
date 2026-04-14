@@ -20,12 +20,13 @@ public class Society {
 	@Id  
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private	int society_Id ;
-	@Column(unique = true, nullable = false)/// error occurred remove this line 
+	@Column(unique = true, nullable = false) 
 	private	String username;
 	private	String societyAddress;
 	private String adminPassword; 
 	private	String pinCode ;
 	private String password;
+	private String status ;
 	
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
@@ -71,12 +72,10 @@ public class Society {
 		private  PaymentDetails paymentDetails;
 
 
- 
- 
 	public Society(int society_Id, String username, String societyAddress, String adminPassword, String pinCode,
-			String password, List<User> user, List<Notice> notice, List<Complaint> complaint, List<Events> event,
-			List<SOS_Alert> sos, List<Guard> guard, List<Guest> guest, List<Parking> parkingSlots,
-			List<GuestParking> guestParking, List<EventHallBooking> eventHallBookings) {
+			String password, String status, List<User> user, List<Notice> notice, List<Complaint> complaint,
+			List<Events> event, List<SOS_Alert> sos, List<Guard> guard, List<Guest> guest, List<Parking> parkingSlots,
+			List<GuestParking> guestParking, List<EventHallBooking> eventHallBookings, PaymentDetails paymentDetails) {
 		super();
 		this.society_Id = society_Id;
 		this.username = username;
@@ -84,6 +83,7 @@ public class Society {
 		this.adminPassword = adminPassword;
 		this.pinCode = pinCode;
 		this.password = password;
+		this.status = status;
 		this.user = user;
 		this.notice = notice;
 		this.complaint = complaint;
@@ -94,13 +94,35 @@ public class Society {
 		this.parkingSlots = parkingSlots;
 		this.guestParking = guestParking;
 		this.eventHallBookings = eventHallBookings;
+		this.paymentDetails = paymentDetails;
 	}
+
 
 	public Society() {
 		super();
 	 
 	}
 	
+
+	public String getStatus() {
+		return status;
+	}
+
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+
+	public PaymentDetails getPaymentDetails() {
+		return paymentDetails;
+	}
+
+
+	public void setPaymentDetails(PaymentDetails paymentDetails) {
+		this.paymentDetails = paymentDetails;
+	}
+
 
 	public List<GuestParking> getGuestParking() {
 		return guestParking;

@@ -60,14 +60,14 @@ public class Manager_Controller {
     @Autowired
     private PaymentRecordRepo paymentRecordRepo;
     
-    // add Society or Register society
+    //Register society
     @PostMapping("/register/Society")
     public ResponseEntity<Void> addSociety(@RequestBody Society society) {
+    	society.setStatus("ACTIVE");
         societyRepo.save(society);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    //Add Notice
  // Add Notice
     @PostMapping("/{username}/addNotice")
     public ResponseEntity<?> addNotice(@PathVariable String username, @RequestBody Notice notice) {
@@ -248,7 +248,7 @@ public class Manager_Controller {
         }
     }
     
-    // delete thr guard 
+    // delete  guard 
     @DeleteMapping("/{username}/deleteGuard/{guardId}")
     public ResponseEntity<?> deleteGuard(
             @PathVariable String username,
