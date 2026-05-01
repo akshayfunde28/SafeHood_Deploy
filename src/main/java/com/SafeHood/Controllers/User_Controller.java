@@ -46,7 +46,7 @@ public class User_Controller {
 	@Autowired
 	private UserRepo userRepo;
 	
-	
+	 
  // Society Login  
     @GetMapping("/{username}/{password}/societyProfile")
     public ResponseEntity<?> getSociety(@PathVariable String username,

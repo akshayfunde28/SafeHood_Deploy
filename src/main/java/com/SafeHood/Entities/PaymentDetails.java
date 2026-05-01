@@ -1,5 +1,7 @@
 package com.SafeHood.Entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -21,6 +23,7 @@ public class PaymentDetails {
 
     @OneToOne
     @JoinColumn(name = "society_id")
+    @JsonBackReference
     private Society society;
 
 	public PaymentDetails() {

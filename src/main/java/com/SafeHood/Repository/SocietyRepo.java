@@ -19,8 +19,10 @@ public interface SocietyRepo  extends JpaRepository<Society, Integer> {
 	
 	Optional<Society> findByUsername(String username);
 	
-	@Query("SELECT new com.SafeHood.Entities.SocietyDTO(s.username, s.societyAddress, s.adminPassword, s.pinCode, s.password) FROM Society s")
-	List<SocietyDTO> getAllSocietyDTO();
+	@Query("SELECT new com.SafeHood.Entities.SocietyDTO(" +
+		       "s.username, s.societyAddress, s.adminPassword, s.pinCode, s.password, s.status) " +
+		       "FROM Society s")
+		List<SocietyDTO> getAllSocietyDTO();
 	
 	
 }

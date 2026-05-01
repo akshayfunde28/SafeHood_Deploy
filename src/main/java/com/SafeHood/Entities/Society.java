@@ -69,6 +69,7 @@ public class Society {
 	private List<EventHallBooking> eventHallBookings = new ArrayList<>();
 	
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
+	@JsonManagedReference
 		private  PaymentDetails paymentDetails;
 
 
