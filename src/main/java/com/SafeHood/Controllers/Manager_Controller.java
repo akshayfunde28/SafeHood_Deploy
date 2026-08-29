@@ -17,7 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.SafeHood.DTO.PaymentUpdateDTO;
+import com.SafeHood.Entities.Emergency_Trigger_logs;
 import com.SafeHood.Entities.Events;
+import com.SafeHood.Entities.FirebaseTokenMapping;
 import com.SafeHood.Entities.Guard;
 import com.SafeHood.Entities.Guest;
 import com.SafeHood.Entities.Notice;
@@ -30,12 +34,14 @@ import com.SafeHood.Entities.Society;
 import com.SafeHood.Entities.User;
 import com.SafeHood.Entities.UserPaymentDTO;
 import com.SafeHood.Repository.EventRepo;
+import com.SafeHood.Repository.FirebaseTokenMappingRepo;
 import com.SafeHood.Repository.GuardRepo;
 import com.SafeHood.Repository.NoticeRepo;
 import com.SafeHood.Repository.PaymentDetailsRepo;
 import com.SafeHood.Repository.PaymentRecordRepo;
 import com.SafeHood.Repository.SocietyRepo;
 import com.SafeHood.Repository.UserRepo;
+import com.SafeHood.Services.NotificationService;
 import com.SafeHood.Services.SafeHoodServices;
 
 @RestController
@@ -56,15 +62,34 @@ public class Manager_Controller {
 	private GuardRepo guardRepo;
     @Autowired
     private PaymentDetailsRepo paymentDetailsRepo;
-
+	@Autowired
+	private NotificationService notificationService;
     @Autowired
     private PaymentRecordRepo paymentRecordRepo;
     
-    //Register society
+    @Autowired
+    private FirebaseTokenMappingRepo tokenRepo;
+    
+    @Autowired
+    private NotificationService firebaseNotificationService;
+    
     @PostMapping("/register/Society")
     public ResponseEntity<Void> addSociety(@RequestBody Society society) {
-    	society.setStatus("ACTIVE");
-        societyRepo.save(society);
+
+        society.setStatus("ACTIVE");
+
+        // Step 1: Save society
+        Society savedSociety = societyRepo.save(society);
+
+        // Step 2: Create FirebaseTokenMapping
+        FirebaseTokenMapping tokenMapping = new FirebaseTokenMapping();
+        tokenMapping.setUserId(savedSociety.getSociety_Id()); // assuming getId() exists
+        tokenMapping.setFcmToken(""); // empty for now
+        tokenMapping.setRole("MANAGER");
+        tokenMapping.setSociety(savedSociety);
+        // Step 3: Save mapping
+        tokenRepo.save(tokenMapping);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -80,7 +105,7 @@ public class Manager_Controller {
 
             // Save notice with society
             safeHoodServices.saveNotice(society, notice);
-
+            notificationService.notifyAllUsersNotice(username, notice);
             return ResponseEntity.ok("✅ Notice added successfully");
 
         } catch (Exception e) {
@@ -122,6 +147,33 @@ public class Manager_Controller {
         }
     }
 
+    @GetMapping("/{username}/getUsersWithEmergency")
+    public ResponseEntity<?> getUsersWithEmergency(
+            @PathVariable String username) {
+
+        try {
+
+            Society society =
+                    societyRepo.getSocietyBySocietyName(username);
+
+            if (society == null) {
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body("Society not found");
+            }
+
+            return ResponseEntity.ok(
+                    safeHoodServices.getUsersWithEmergency(username)
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching users : " + e.getMessage());
+        }
+    }
 
     
     //Add Event
@@ -139,7 +191,7 @@ public class Manager_Controller {
 
             // 2. Pass event to service to save
             safeHoodServices.saveEvents(society, event);
-
+            notificationService.notifyAllUsersEvent(username, event);
             // 3. Return success response
             return ResponseEntity.status(201).body(event);
 
@@ -200,6 +252,7 @@ public class Manager_Controller {
         }
     }
     
+    // Update parking slots 
     @PutMapping("/{username}/updateParking/{slotId}")
     public ResponseEntity<?> updateParking(@PathVariable String username,
                                            @PathVariable int slotId,
@@ -338,6 +391,8 @@ public class Manager_Controller {
                     .body("Error adding user: " + e.getMessage());
         }
     }
+    
+    
     // delete Resident 
     @DeleteMapping("/{username}/deleteResident/{userId}")
     public ResponseEntity<?> deleteResident(
@@ -441,9 +496,11 @@ public class Manager_Controller {
 
         // 💾 Save in DB
         paymentDetailsRepo.save(paymentDetails);
-
+        notificationService.notifyPaymentDetails(username, paymentDetails, "Added");
         return "Payment details added successfully";
     }
+    
+    
     // get payment details 
     @GetMapping("/payment-details/{username}")
     public ResponseEntity<?> getPaymentDetails(@PathVariable String username) {
@@ -456,6 +513,7 @@ public class Manager_Controller {
         
         return ResponseEntity.ok(dto);
     }
+    
     
     // update payment details 
     @PutMapping("/payment-details/{username}")
@@ -475,6 +533,7 @@ public class Manager_Controller {
         existing.setAccountHolderName(updatedDetails.getAccountHolderName());
 
         paymentDetailsRepo.save(existing);
+        notificationService.notifyPaymentDetails(username, existing, "Updated");
 
         return "Payment details updated successfully";
     }
@@ -513,15 +572,15 @@ public class Manager_Controller {
 
             paymentRecordRepo.save(record);
         }
+        notificationService.notifyMaintenanceReminder(username, maintenanceAmount, month);
 
         return "Monthly payment records created for all users";
     }
     
-    // update payment data 
-    
+    // update payment data     
     @PutMapping("/update-payment/{paymentId}")
     public String updatePayment(@PathVariable int paymentId,
-                                @RequestBody PaymentRecord updatedRecord) {
+                                @RequestBody PaymentUpdateDTO updatedRecord) {
 
         PaymentRecord record = paymentRecordRepo.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
@@ -537,6 +596,10 @@ public class Manager_Controller {
         record.setTotalAmount(total);
 
         paymentRecordRepo.save(record);
+        notificationService.notifyPaymentUpdate(
+                record.getSociety().getUsername(), // get society username
+                record
+        );
 
         return "Payment record updated successfully";
     }
@@ -579,13 +642,56 @@ public class Manager_Controller {
     }
     
     
+    // update fcm token 
+    @PutMapping("/updateToken")
+    public ResponseEntity<?> updateToken(
+            @RequestParam String username,
+            @RequestParam Integer userId,
+            @RequestParam String role,
+            @RequestParam String token) {
+
+        try {
+            String response = firebaseNotificationService
+                    .updateFcmTokenByUsername(username, userId, role, token);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
     
     
+    @PutMapping("/toggle-emergency")
+    public ResponseEntity<String> toggleEmergency(
+            @RequestParam Integer userId) {
+
+        String response =
+                notificationService.toggleEmergency(userId);
+
+        return ResponseEntity.ok(response);
+    }
     
     
-    
-    
-    
+    @GetMapping("/get-emergency-logs")
+    public ResponseEntity<?> getEmergencyLogs(
+            @RequestParam String username) {
+
+        try {
+
+            List<Emergency_Trigger_logs> logs =
+                    safeHoodServices
+                            .getLast10DaysEmergencyLogs(username);
+
+            return ResponseEntity.ok(logs);
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .status(500)
+                    .body(e.getMessage());
+        }
+    }
     
     
     

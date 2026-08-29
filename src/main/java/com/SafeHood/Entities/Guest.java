@@ -1,5 +1,7 @@
 package com.SafeHood.Entities;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
@@ -13,33 +15,149 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="Guest")
 public class Guest {
+	// add this in side the resident table one to many relationship 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int guest_Id ;
 	private String guest_Name ;
 	private String guest_Phone ; 
 	private String guest_Purpose ;
+	private Integer residentId;
 	private String guest_EntryTime ;
+	private String verificationStatus; // pending approved reject like this 
 	private String guest_Address ; 
-	private String guest_ResidentName;
+	private Boolean preApproved;
+    private String verificationCode;
+    private String entryStatus; // entered, exited, expired, not entered
+    // Validity
+    private LocalDateTime createdAt;
+    private String vehicleNumber;
+    private LocalDateTime validTill;
 	@ManyToOne
 	@JoinColumn(name="Society_Guest")
 	@JsonBackReference
 	private Society society ;
 	
 	
-	   public Guest(int guest_Id, String guest_Name, String guest_Phone, String guest_Purpose, String guest_EntryTime,
-			String guest_Address, String guest_ResidentName, Society society) {
+	public Guest(int guest_Id, String guest_Name, String guest_Phone, String guest_Purpose, Integer residentId,
+			String guest_EntryTime, String verificationStatus, String guest_Address, Boolean preApproved,
+			String verificationCode, String entryStatus, LocalDateTime createdAt, String vehicleNumber,
+			LocalDateTime validTill, Society society) {
 		super();
 		this.guest_Id = guest_Id;
 		this.guest_Name = guest_Name;
 		this.guest_Phone = guest_Phone;
 		this.guest_Purpose = guest_Purpose;
+		this.residentId = residentId;
 		this.guest_EntryTime = guest_EntryTime;
+		this.verificationStatus = verificationStatus;
 		this.guest_Address = guest_Address;
-		this.guest_ResidentName = guest_ResidentName;
+		this.preApproved = preApproved;
+		this.verificationCode = verificationCode;
+		this.entryStatus = entryStatus;
+		this.createdAt = createdAt;
+		this.vehicleNumber = vehicleNumber;
+		this.validTill = validTill;
 		this.society = society;
 	}
+
+	
+	
+	public Integer getResidentId() {
+		return residentId;
+	}
+
+
+
+	public void setResidentId(Integer residentId) {
+		this.residentId = residentId;
+	}
+
+
+
+	public String getVerificationStatus() {
+		return verificationStatus;
+	}
+
+
+
+	public void setVerificationStatus(String verificationStatus) {
+		this.verificationStatus = verificationStatus;
+	}
+
+
+
+	public Boolean getPreApproved() {
+		return preApproved;
+	}
+
+
+
+	public void setPreApproved(Boolean preApproved) {
+		this.preApproved = preApproved;
+	}
+
+
+
+	public String getVerificationCode() {
+		return verificationCode;
+	}
+
+
+
+	public void setVerificationCode(String verificationCode) {
+		this.verificationCode = verificationCode;
+	}
+
+
+
+	public String getEntryStatus() {
+		return entryStatus;
+	}
+
+
+
+	public void setEntryStatus(String entryStatus) {
+		this.entryStatus = entryStatus;
+	}
+
+
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+
+
+	public String getVehicleNumber() {
+		return vehicleNumber;
+	}
+
+
+
+	public void setVehicleNumber(String vehicleNumber) {
+		this.vehicleNumber = vehicleNumber;
+	}
+
+
+
+	public LocalDateTime getValidTill() {
+		return validTill;
+	}
+
+
+
+	public void setValidTill(LocalDateTime validTill) {
+		this.validTill = validTill;
+	}
+
+
 
 	public Guest() {
 		super();
@@ -92,14 +210,6 @@ public class Guest {
 
 	public void setGuest_Address(String guest_Address) {
 		this.guest_Address = guest_Address;
-	}
-
-	public String getGuest_ResidentName() {
-		return guest_ResidentName;
-	}
-
-	public void setGuest_ResidentName(String guest_ResidentName) {
-		this.guest_ResidentName = guest_ResidentName;
 	}
 
 	public Society getSociety() {

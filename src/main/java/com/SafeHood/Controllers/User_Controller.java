@@ -30,6 +30,7 @@ import com.SafeHood.Repository.PaymentRecordRepo;
 import com.SafeHood.Repository.SocietyRepo;
 import com.SafeHood.Repository.SosRepo;
 import com.SafeHood.Repository.UserRepo;
+import com.SafeHood.Services.NotificationService;
 import com.SafeHood.Services.SafeHoodServices;
 
 @RestController
@@ -45,6 +46,9 @@ public class User_Controller {
 	 
 	@Autowired
 	private UserRepo userRepo;
+	
+	@Autowired
+	private NotificationService notificationService;
 	
 	 
  // Society Login  
@@ -91,6 +95,7 @@ public class User_Controller {
                 return ResponseEntity.status(404).body("Society not found");
             } 
             safeHoodServices.saveComplaints(society, complaint);
+            notificationService.complaintPushNotification(username,complaint);
             return ResponseEntity.status(201).body(complaint); 
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,6 +114,7 @@ public class User_Controller {
                 return ResponseEntity.status(404).body("Society not found");
             }
             safeHoodServices.saveHallBooking(society, bookingHall);
+           notificationService. eventBookingNotification(username,bookingHall);
             return ResponseEntity.status(201).body(bookingHall);
         } catch (Exception e) {
             e.printStackTrace();
@@ -156,6 +162,12 @@ public class User_Controller {
             if (!updated) {
                 return ResponseEntity.status(404).body("❌ Hall booking not found with ID: " + hallID);
             }
+         // 🔥 ALWAYS fetch full data from DB
+            EventHallBooking bookingFromDB =
+                    safeHoodServices.getHallBookingById(hallID);
+
+            // 🔥 Send notification using DB data
+            notificationService.notifyResidentEventUpdate(username, bookingFromDB);
             return ResponseEntity.ok("✅ Hall booking updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("🚨 Error updating hall booking: " + e.getMessage());
@@ -190,13 +202,16 @@ Society society = societyRepo.getSocietyBySocietyName(username);
         }
         String currentStatus = complaint.getComplaint_Status();
         if ("pending".equalsIgnoreCase(currentStatus)) {
-            complaint.setComplaint_Status("Resolved");
+            complaint.setComplaint_Status("RESOLVED");
         } else {
-            complaint.setComplaint_Status("Pending");
+            complaint.setComplaint_Status("PENDING");
         }
         societyRepo.save(society);
+        notificationService.notifyComplaintStatus(username, complaint);
+
         return ResponseEntity.ok(complaint);
     }
+    
 
 
  // Get Events of a Society

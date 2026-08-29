@@ -2,6 +2,8 @@ package com.SafeHood.Entities;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -23,13 +25,14 @@ public class PaymentRecord {
     // 🔗 Mapping with User
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     // 🔗 Mapping with Society
     @ManyToOne
     @JoinColumn(name = "society_id")
+    @JsonBackReference
     private Society society;
-
     // 🔥 Default constructor
     public PaymentRecord() {
         super();

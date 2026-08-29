@@ -23,10 +23,14 @@ public class Guard {
 	private String guard_Password;
 	private String guard_Shift;
 	private String guard_Joiningdate;
+	
+	
 	@ManyToOne
 	@JoinColumn(name="Society_Guard")
 	@JsonBackReference
    private Society society ;
+	
+	
 	public Guard() {
 		super();
 	}

@@ -30,7 +30,11 @@ public class Society {
 	
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
-	private List<User> user = new ArrayList<>();                         					 	   // User mapping 
+	private List<User> user = new ArrayList<>();  
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
+	@JsonManagedReference
+	private List<FirebaseTokenMapping> firebaseTokenMappings = new ArrayList<>();  // fmcToken mapping 
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
@@ -71,6 +75,10 @@ public class Society {
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)
 	@JsonManagedReference
 		private  PaymentDetails paymentDetails;
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "society", orphanRemoval = true)     // Event hall booking 
+	@JsonManagedReference
+	private List<Emergency_Trigger_logs> user_emrgencyTrigger_logs = new ArrayList<>();
 
 
 	public Society(int society_Id, String username, String societyAddress, String adminPassword, String pinCode,
